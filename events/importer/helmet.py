@@ -186,7 +186,7 @@ class HelmetImporter(Importer):
         if ext_props['Description']:
             event['description'][lang] = strip_tags(ext_props['Description'])
 
-        matches = re.findall(r'src="(.*?)"', unicode(ext_props['Images']))
+        matches = re.findall(r'src="(.*?)"', str(ext_props['Images']))
         if matches:
             img_url = matches[0]
             event['image'] = HELMET_BASE_URL + img_url
@@ -212,9 +212,9 @@ class HelmetImporter(Importer):
         event['custom_fields']['ExpiryDate'] = dt_parse(
             event_el['ExpiryDate']).strftime("%Y-%m-%dT%H:%M:%SZ")
 
-        to_tprek_id = lambda k: self.tprek_by_id[unicode(k)]
+        to_tprek_id = lambda k: self.tprek_by_id[str(k)]
         to_le_id = lambda nid: next(
-            (to_tprek_id(v[1]) for k, v in LOCATIONS.iteritems()
+            (to_tprek_id(v[1]) for k, v in LOCATIONS.items()
              if nid in v[0]), None)
         yso_to_db = lambda v: self.yso_by_id[YSO_BASE_URL + v]
 
@@ -230,9 +230,9 @@ class HelmetImporter(Importer):
                           (str(classification['NodeId']), str(eid)))
             else:
                 # Map some classifications to YSO based categories
-                if unicode(
+                if str(
                         classification['NodeName']) in YSO_CATEGORY_MAPS.keys():
-                    yso = YSO_CATEGORY_MAPS[unicode(classification['NodeName'])]
+                    yso = YSO_CATEGORY_MAPS[str(classification['NodeName'])]
                     if isinstance(yso, tuple):
                         for t_v in yso:
                             event_categories.add(yso_to_db(t_v))
@@ -243,7 +243,7 @@ class HelmetImporter(Importer):
     def _recur_fetch_paginated_url(self, url, lang, events):
         response = requests.get(url)
         assert response.status_code == 200
-        root_doc = json.loads(response.content)
+        root_doc = response.json()
         documents = root_doc['value']
         for doc in documents:
             self._import_event(lang, doc, events)
@@ -258,7 +258,7 @@ class HelmetImporter(Importer):
     def import_events(self):
         print("Importing HelMet events")
         events = recur_dict()
-        for lang, helmet_lang_id in HELMET_LANGUAGES.iteritems():
+        for lang, helmet_lang_id in HELMET_LANGUAGES.items():
             url = HELMET_API_URL.format(lang_code=helmet_lang_id)
             print("Processing lang " + lang)
             self._recur_fetch_paginated_url(url, lang, events)
