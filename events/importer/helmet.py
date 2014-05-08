@@ -159,7 +159,7 @@ class HelmetImporter(Importer):
         self.category_list = Category.objects.filter(
             data_source=self.yso_data_source
         ).filter(url__in=cat_id_set)
-        self.yso_by_id = {p.url: p.id for p in self.category_list}
+        self.yso_by_id = {p.url: p for p in self.category_list}
 
 
     @staticmethod
@@ -238,7 +238,7 @@ class HelmetImporter(Importer):
                             event_categories.add(yso_to_db(t_v))
                     else:
                         event_categories.add(yso_to_db(yso))
-        event['categories'] = event_categories
+        event['keywords'] = event_categories
 
     def _recur_fetch_paginated_url(self, url, lang, events):
         response = requests.get(url)
